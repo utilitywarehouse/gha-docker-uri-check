@@ -1,0 +1,9 @@
+name: Docker URI check
+description: Checks URIs to Docker images in configuration files
+inputs:
+  docker-token:
+    description: Token for reading the Docker registry
+    required: true
+runs:
+  using: node16
+  main: index.js
