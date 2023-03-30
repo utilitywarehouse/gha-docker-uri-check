@@ -4,13 +4,23 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tape --require ts-node/register src/**/*.test.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "Damian <dwood@uw.co.uk>",
   "license": "UNLICENSED",
   "dependencies": {
     "@actions/core": "^1.10.0",
-    "@actions/github": "^5.1.1"
+    "@actions/github": "^5.1.1",
+    "@actions/glob": "^0.4.0",
+    "docker-registry-client": "^3.3.1",
+    "node-fetch": "^3.3.1"
+  },
+  "devDependencies": {
+    "dotenv": "^16.0.3",
+    "tape": "^5.6.3",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.3"
   }
 }

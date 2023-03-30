@@ -1,5 +1,6 @@
 name: Docker URI check
 description: Checks URIs to Docker images in configuration files
+author: Damian
 inputs:
   docker-token:
     description: Token for reading the Docker registry
