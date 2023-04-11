@@ -30,9 +30,6 @@ export function dockerRegistryChecker(registries: DockerRegistry[]) {
     try {
       await new Promise((resolve, reject) => {
         client.getManifest({ ref: tag }, (err, manifest) => {
-          // Need to close otherwise the program hangs and never exits.
-          client.close();
-
           if (err) {
             reject(err);
           } else {
@@ -45,6 +42,9 @@ export function dockerRegistryChecker(registries: DockerRegistry[]) {
         return "not_found";
       }
       throw error;
+    } finally {
+      // Need to close otherwise the program hangs and never exits.
+      client.close();
     }
 
     return "ok";
