@@ -1,7 +1,7 @@
 import * as core from "@actions/core";
 import * as glob from "@actions/glob";
 
-import { DockerRegistry, dockerRegistryChecker } from "./docker";
+import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";
 
 // Entry point for the GitHub Action.
@@ -17,24 +17,32 @@ import { dockerImageURIFinder } from "./find";
   const matches = files.flatMap(findURIs);
 
   for (const match of matches) {
-    const status = await checkURI(match.uri);
     const annotation = {
       file: match.file,
       startLine: match.line,
     };
+
+    let status: Status;
+    try {
+      status = await checkURI(match.uri);
+    } catch (error) {
+      core.error(`Check for "${match.uri}" failed due to: ${error}`, {
+        ...annotation,
+        title: "Docker image check failed",
+      });
+      continue;
+    }
+
     switch (status) {
       case "not_found":
         core.error(
-          `The Docker image "${match.uri}" does not exist. Is the tag correct?`,
-          {
-            ...annotation,
-            title: "Non-existent Docker image",
-          }
+          `The image "${match.uri}" does not exist. Is the tag correct?`,
+          { ...annotation, title: "Non-existent Docker image" }
         );
         break;
       // case "outdated":
       //   core.warning(
-      //     `The Docker image "${uri.uri}" does not correspond to the "latest" tag. Is this ok?`,
+      //     `The image "${uri.uri}" does not correspond to the "latest" tag. Is this ok?`,
       //     {
       //       ...annotation,
       //       title: "Outdated Docker image",

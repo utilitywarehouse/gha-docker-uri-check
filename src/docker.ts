@@ -6,7 +6,7 @@ export interface DockerRegistry {
   password: string;
 }
 
-type Status = "ok" | "not_found";
+export type Status = "ok" | "not_found";
 
 export function dockerRegistryChecker(registries: Array<DockerRegistry>) {
   const cache = new Map<string, Status>();
