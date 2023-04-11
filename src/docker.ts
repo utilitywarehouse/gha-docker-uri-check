@@ -8,10 +8,8 @@ export interface DockerRegistry {
 
 export type Status = "ok" | "not_found";
 
-export function dockerRegistryChecker(registries: Array<DockerRegistry>) {
-  const cache = new Map<string, Status>();
-
-  async function performCheck(uri: string): Promise<Status> {
+export function dockerRegistryChecker(registries: DockerRegistry[]) {
+  return async function check(uri: string): Promise<Status> {
     const registry = registries.find((registry) =>
       uri.startsWith(registry.endpoint)
     );
@@ -50,15 +48,5 @@ export function dockerRegistryChecker(registries: Array<DockerRegistry>) {
     }
 
     return "ok";
-  }
-
-  return async function check(uri: string): Promise<Status> {
-    let status = cache.get(uri);
-    if (status) {
-      return status;
-    }
-    status = await performCheck(uri);
-    cache.set(uri, status);
-    return status;
   };
 }
