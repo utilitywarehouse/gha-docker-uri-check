@@ -1,0 +1,131 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics-api
+spec:
+  ports:
+    # Port for exposing prometheus metrics
+    - name: metrics
+      protocol: TCP
+      port: 8081
+      targetPort: 8081
+
+    # Port for exposing HTTP API
+    - name: http
+      protocol: TCP
+      port: 5000
+      targetPort: 5000
+
+  selector:
+    app: analytics-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: &app analytics-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: *app
+  template:
+    metadata:
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: /__/metrics
+        prometheus.io/port: "8081"
+      labels:
+        app: *app
+        externalApi: "true"
+    spec:
+      imagePullSecrets:
+        - name: docker-registry-key
+      volumes:
+        - name: secrets
+          secret:
+            secretName: biq-query
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - *app
+      containers:
+        - name: analytics-api
+          image: registry.uw.systems/partner-planner/analytics-api-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e
+          imagePullPolicy: Always
+          env:
+            - name: DISABLE_TRACING
+              value: "true"
+            - name: BQ_CREDENTIALS
+              value: "/secrets/analytics-api.json"
+            - name: BQ_PROJECT_ID
+              value: "uw-partner-prod"
+          ports:
+            - containerPort: 8081
+              name: metrics
+          resources:
+            requests:
+              cpu: 0
+              memory: 0
+            limits:
+              cpu: 1
+              memory: 256Mi
+          volumeMounts:
+            - mountPath: /secrets
+              name: secrets
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /__/ready
+              port: 8081
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+          livenessProbe:
+            httpGet:
+              path: /__/ready
+              port: 8081
+            initialDelaySeconds: 10
+            timeoutSeconds: 2
+        # COMMENTED OUT TO TEST WHETHER IT IGNORES COMMENTS.
+        # - name: foo
+        #   image: registry.uw.systems/partner-planner/jtc-prospect-redirector-api:d57ee2e977fab5d342f38932563a80cddc4ca762
+        #   imagePullPolicy: Always
+        #   env:
+        #     - name: LISTEN_ADDR
+        #       value: "8080"
+        #     - name: PROSPECT_JOIN_URL
+        #       value: "https://uw.co.uk/ref/:leadCode"
+        #     - name: BUS_WRITER_URL
+        #       value: "proximo://kafka-primary-event-ingress.partner:6868/planner_v1"
+        #     - name: LOG_LEVEL
+        #       value: "debug"
+        #     - name: SHORTENED_URL_EXPIRY
+        #       value: "8760h"
+        #     - name: USER_AGENT_BLACKLIST
+        #       value: >-
+        #         WhatsApp,
+        #         Mozilla/5.0 (Windows NT 6.1; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/51.0.2704.103 Safari/537.36
+        #   ports:
+        #     - name: http
+        #       containerPort: 8080
+        #     - name: http-probe
+        #       containerPort: 8081
+        #   readinessProbe:
+        #     httpGet:
+        #       path: /__/ready
+        #       port: 8081
+        #     initialDelaySeconds: 15
+        #     timeoutSeconds: 10
+        #   livenessProbe:
+        #     httpGet:
+        #       path: /__/health
+        #       port: 8081
+        #     initialDelaySeconds: 15
+        #     timeoutSeconds: 10

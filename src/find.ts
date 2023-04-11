@@ -22,6 +22,20 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
   );
 
   return function find(file: string): DockerURIMatch[] {
+    const stats = fs.statSync(file);
+
+    // Only allow files.
+    if (!stats.isFile()) {
+      console.warn(`Skipping ${file} because it's not a file`);
+      return [];
+    }
+
+    // Skip large files.
+    if (stats.size > 10 * 1024) {
+      console.warn(`Skipping ${file} because it is too large`);
+      return [];
+    }
+
     const content = fs.readFileSync(file).toString();
     const lines = content.split("\n");
 
@@ -29,9 +43,12 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     for (let i = 0; i < lines.length; i++) {
       const line = lines[i];
+
+      // Ignore YAML comments.
       if (YAML_COMMENT_REGEX.test(line)) {
         continue;
       }
+
       for (const regex of regexes) {
         const match = line.match(regex);
         if (match) {
