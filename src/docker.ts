@@ -1,6 +1,6 @@
 import { createClientV2 } from "docker-registry-client";
 
-interface DockerRegistry {
+export interface DockerRegistry {
   endpoint: string;
   username: string;
   password: string;
