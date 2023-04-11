@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 
-const YAML_COMMENT_REGEX = /\s+#/;
+const YAML_COMMENT_REGEX = /^\s*#/;
 
 interface DockerRegistry {
   endpoint: string;
@@ -15,9 +15,12 @@ interface DockerURIMatch {
 export function dockerImageURIFinder(registries: DockerRegistry[]) {
   const regexes = registries.map(
     (registry) =>
+      // A greedy regex to match Docker URIs such as: registry.uw.systems/partner-planner/analytics-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e
       new RegExp(
-        registry.endpoint.replace(".", "\\.") + "/.+/.+:([a-z0-9]+)",
-        "i"
+        "\\b" +
+          escapeRegExp(registry.endpoint) +
+          "/[\\w_-]+/[\\w_-]+:(\\w+)\\b",
+        "gi"
       )
   );
 
@@ -50,8 +53,8 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       }
 
       for (const regex of regexes) {
-        const match = line.match(regex);
-        if (match) {
+        const matches = line.matchAll(regex);
+        for (const match of matches) {
           uris.push({
             uri: match[0],
             file,
@@ -63,4 +66,9 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     return uris;
   };
+}
+
+// Source: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions#escaping
+function escapeRegExp(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"); // $& means the whole matched string
 }
