@@ -1,5 +1,5 @@
 import * as core from "@actions/core";
-import * as glob from "@actions/glob";
+import { glob } from "glob";
 
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";
@@ -10,9 +10,10 @@ import { dockerImageURIFinder } from "./find";
   const findURIs = dockerImageURIFinder(registries);
   const checkURI = dockerRegistryChecker(registries);
 
-  const files = await glob
-    .create(["**/*.yaml", "**/*.yml"].join("\n"), { matchDirectories: false })
-    .then((globber) => globber.glob());
+  const files = await glob(["**/*.yaml", "**/*.yml"], {
+    cwd: "./",
+    nodir: true,
+  });
 
   const matches = files.flatMap(findURIs);
 
