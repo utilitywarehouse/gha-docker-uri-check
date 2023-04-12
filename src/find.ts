@@ -12,6 +12,8 @@ interface DockerURIMatch {
   line: number;
 }
 
+const MAX_FILE_SIZE = 100_000;
+
 export function dockerImageURIFinder(registries: DockerRegistry[]) {
   const regexes = registries.map(
     (registry) =>
@@ -34,8 +36,10 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     }
 
     // Skip large files.
-    if (stats.size > 10 * 1024) {
-      console.warn(`Skipping ${file} because it is too large`);
+    if (stats.size > MAX_FILE_SIZE) {
+      console.warn(
+        `Skipping ${file} because it is too large (max: ${MAX_FILE_SIZE} bytes)`
+      );
       return [];
     }
 
