@@ -4,6 +4,8 @@ import { glob } from "glob";
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";
 
+const MAX_CHECKS = 1000;
+
 // Entry point for the GitHub Action.
 (async function run() {
   const registries = getDockerRegistriesFromInput();
@@ -16,6 +18,14 @@ import { dockerImageURIFinder } from "./find";
   });
 
   const matches = files.flatMap(findURIs);
+
+  // Don't check too many URIs, as this could cause a crash.
+  if (matches.length > MAX_CHECKS) {
+    core.setFailed(
+      `Found too many Docker URIs to check: ${matches.length} (max: ${MAX_CHECKS})`
+    );
+    return;
+  }
 
   for (const match of matches) {
     const annotation = {
