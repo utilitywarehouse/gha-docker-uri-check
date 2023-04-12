@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
-    "module": "commonjs",
+    "module": "ESNext",
     "moduleResolution": "node",
-    "outDir": "dist",
     "target": "ES2015"
   },
   "exclude": [
