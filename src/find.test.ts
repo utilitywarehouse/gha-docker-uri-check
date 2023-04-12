@@ -4,17 +4,17 @@ import { dockerImageURIFinder } from "./find";
 test("docker URI finder", async (t) => {
   const find = dockerImageURIFinder([{ endpoint: "registry.uw.systems" }]);
 
-  test("empty file", async (t) => {
+  t.test("empty file", async (t) => {
     const matches = find("test-fixtures/empty.yaml");
     t.deepEqual(matches, []);
   });
 
-  test("commented out", async (t) => {
+  t.test("commented out", async (t) => {
     const matches = find("test-fixtures/commented.yaml");
     t.deepEqual(matches, []);
   });
 
-  test("single URI", async (t) => {
+  t.test("single URI", async (t) => {
     const matches = find("test-fixtures/single.yaml");
     t.deepEqual(matches, [
       {
@@ -25,7 +25,7 @@ test("docker URI finder", async (t) => {
     ]);
   });
 
-  test("multiple URIs in same file", async (t) => {
+  t.test("multiple URIs in same file", async (t) => {
     const matches = find("test-fixtures/multiple.yaml");
     t.deepEqual(matches, [
       {

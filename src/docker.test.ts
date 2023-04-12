@@ -7,14 +7,14 @@ dotenv.config();
 test("docker registry checker", async (t) => {
   const check = makeChecker();
 
-  test("valid tag", async (t) => {
+  t.test("valid tag", async (t) => {
     const status = await check(
       "registry.uw.systems/partner-planner/analytics-api-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e"
     );
     t.equal(status, "ok");
   });
 
-  test("non-existent tag", async (t) => {
+  t.test("non-existent tag", async (t) => {
     const status = await check(
       "registry.uw.systems/partner-planner/analytics-api-api:iDontExist"
     );
