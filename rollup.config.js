@@ -9,5 +9,10 @@ module.exports = {
     dir: "dist",
     format: "cjs",
   },
-  plugins: [typescript(), json(), commonjs(), nodeResolve()],
+  plugins: [
+    typescript({ module: "ESNext" }),
+    json(),
+    commonjs(),
+    nodeResolve({ preferBuiltins: false }),
+  ],
 };
