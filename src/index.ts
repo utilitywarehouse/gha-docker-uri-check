@@ -12,8 +12,8 @@ const MAX_CHECKS = 1000;
   const findURIs = dockerImageURIFinder(registries);
   const checkURI = dockerRegistryChecker(registries);
 
-  const files = await glob(["**/*.yaml", "**/*.yml"], {
-    cwd: "./",
+  const files = await glob(core.getInput("patterns"), {
+    cwd: core.getInput("working-directory"),
     nodir: true,
   });
 

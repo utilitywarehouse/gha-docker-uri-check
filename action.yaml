@@ -1,10 +1,18 @@
 name: Docker URI check
-description: Checks URIs to Docker images in configuration files
-author: Damian
+description: Finds and checks Docker URIs against the provided registries
+author: Damian <dwood@uw.co.uk>
 inputs:
-  docker-token:
-    description: Token for reading the Docker registry
+  docker-registries:
+    description: A map of Docker registries endpoints to credentials
     required: true
+  working-directory:
+    description: The directory to look for files
+    required: false
+    default: './'
+  patterns:
+    description: Glob patterns for files to match
+    required: false
+    default: '["**/*.yaml", "**/*.yml"]'
 runs:
   using: node16
   main: dist/index.js
