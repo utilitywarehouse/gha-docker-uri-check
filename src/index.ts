@@ -92,6 +92,7 @@ function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
 
   const args = ["diff", "--merge-base", mergeBase, "--", ...extensionFilter];
   console.log("Args: ", args);
+  console.log("CWD: ", process.cwd());
 
   const output = spawnSync("git", args, {
     timeout: 5000,
