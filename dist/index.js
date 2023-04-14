@@ -62353,7 +62353,7 @@ const MAX_CHECKS = 1000;
                 ...annotation,
                 title: "Docker image check failed",
             });
-            continue;
+            throw error;
         }
         switch (status) {
             case "not_found":
@@ -62387,9 +62387,8 @@ function gitDiff(mergeBase, allowedExtensions) {
         timeout: 5000,
         maxBuffer: 10 * 1024 * 1024,
     });
-    console.error("Error: ", output.stderr.toString());
-    if (output.error) {
-        throw output.error;
+    if (output.status !== 0) {
+        throw "Git diff command failed due to: " + output.stderr.toString();
     }
     return output.stdout.toString();
 }
