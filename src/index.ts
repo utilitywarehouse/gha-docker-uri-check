@@ -1,5 +1,5 @@
+import { spawnSync } from "node:child_process";
 import * as github from "@actions/core";
-import { glob } from "glob";
 
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";
@@ -12,13 +12,17 @@ const MAX_CHECKS = 1000;
   const findURIs = dockerImageURIFinder(registries);
   const checkURI = dockerRegistryChecker(registries);
 
-  const patterns = JSON.parse(github.getInput("patterns")) as string[];
-  const files = await glob(patterns, {
-    cwd: github.getInput("working-directory"),
-    nodir: true,
-  });
+  // The ref to compare against. This is usually "master" or whatever branch a PR is set to merge into.
+  const mergeBase = github.getInput("merge-base");
 
-  const matches = files.flatMap(findURIs);
+  // Restrict the diff to files with these extensions.
+  const fileExtensions = github
+    .getInput("file-extensions")
+    .split(",")
+    .map((ext) => ext.trim());
+
+  const diff = gitDiff(mergeBase, fileExtensions);
+  const matches = findURIs(diff);
 
   // Don't check too many URIs, as this could cause a crash.
   if (matches.length > MAX_CHECKS) {
@@ -80,4 +84,23 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
     endpoint,
     ...values,
   }));
+}
+
+function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
+  const extensionFilter = allowedExtensions
+    .map((ext) => `'*.${ext}'`)
+    .join(" ");
+
+  const output = spawnSync(
+    "git",
+    ["diff", "--merge-base", mergeBase, "--", extensionFilter],
+    {
+      timeout: 5000,
+      maxBuffer: 10 * 1024 * 1024,
+    }
+  );
+  if (output.error) {
+    throw output.error;
+  }
+  return output.stdout.toString();
 }

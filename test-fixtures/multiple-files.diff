@@ -1,0 +1,26 @@
+diff --git a/prod-aws/partner-planner/assistant-card-reader.yaml b/prod-aws/partner-planner/assistant-card-reader.yaml
+index 7682388aad..5bed98ddf3 100644
+--- a/prod-aws/partner-planner/assistant-card-reader.yaml
++++ b/prod-aws/partner-planner/assistant-card-reader.yaml
+@@ -22,7 +22,7 @@ spec:
+       terminationGracePeriodSeconds: 60
+       containers:
+         - name: assistant-card-reader
+-          image: registry.uw.systems/partner-planner/assistant-cards:8c09610840dd0d286b25f8846fdec17cf3529da0
++          image: registry.uw.systems/partner-planner/assistant-cards:bar
+           command: ["/app", "reader"]
+           env:
+             - name: CA_AUTH_KEY
+diff --git a/prod-aws/partner-planner/backend.yaml b/prod-aws/partner-planner/backend.yaml
+index 372f9fa0ca..32465c5968 100644
+--- a/prod-aws/partner-planner/backend.yaml
++++ b/prod-aws/partner-planner/backend.yaml
+@@ -55,7 +55,7 @@ spec:
+                         - *app
+       containers:
+         - name: backend
+-          image: registry.uw.systems/partner-planner/backend:fa86028129e0a3c4dc29f0863eb002e9b9391762
++          image: registry.uw.systems/partner-planner/backend:foo
+           imagePullPolicy: Always
+           env:
+             - name: CA_AUTH_KEY

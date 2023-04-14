@@ -1,0 +1,13 @@
+diff --git a/prod-aws/partner-planner/backend.yaml b/prod-aws/partner-planner/backend.yaml
+index 372f9fa0ca..32465c5968 100644
+--- a/prod-aws/partner-planner/backend.yaml
++++ b/prod-aws/partner-planner/backend.yaml
+@@ -55,7 +55,7 @@ spec:
+                         - *app
+       containers:
+         - name: backend
+-          image: registry.uw.systems/partner-planner/backend:fa86028129e0a3c4dc29f0863eb002e9b9391762
++          image: registry.uw.systems/partner-planner/backend:foo
+           imagePullPolicy: Always
+           env:
+             - name: CA_AUTH_KEY

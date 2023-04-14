@@ -1,4 +1,4 @@
-import * as fs from "node:fs";
+import * as parseDiff from "parse-diff";
 
 const YAML_COMMENT_REGEX = /^\s*#/;
 
@@ -6,13 +6,11 @@ interface DockerRegistry {
   endpoint: string;
 }
 
-interface DockerURIMatch {
+export interface DockerURIMatch {
   uri: string;
   file: string;
   line: number;
 }
-
-const MAX_FILE_SIZE = 100_000;
 
 export function dockerImageURIFinder(registries: DockerRegistry[]) {
   const regexes = registries.map(
@@ -26,44 +24,35 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       )
   );
 
-  return function find(file: string): DockerURIMatch[] {
-    const stats = fs.statSync(file);
-
-    // Only allow files.
-    if (!stats.isFile()) {
-      console.warn(`Skipping ${file} because it's not a file`);
-      return [];
-    }
-
-    // Skip large files.
-    if (stats.size > MAX_FILE_SIZE) {
-      console.warn(
-        `Skipping ${file} because it is too large (max: ${MAX_FILE_SIZE} bytes)`
-      );
-      return [];
-    }
-
-    const content = fs.readFileSync(file).toString();
-    const lines = content.split("\n");
-
+  return function find(diff: string): DockerURIMatch[] {
+    const files = parseDiff(diff);
     const uris: DockerURIMatch[] = [];
 
-    for (let i = 0; i < lines.length; i++) {
-      const line = lines[i];
+    for (const file of files) {
+      for (const chunk of file.chunks) {
+        for (const change of chunk.changes) {
+          if (change.type !== "add") {
+            continue;
+          }
 
-      // Ignore YAML comments.
-      if (YAML_COMMENT_REGEX.test(line)) {
-        continue;
-      }
+          // Strip the "+" prefix.
+          const line = change.content.substring(1);
 
-      for (const regex of regexes) {
-        const matches = line.matchAll(regex);
-        for (const match of matches) {
-          uris.push({
-            uri: match[0],
-            file,
-            line: i + 1,
-          });
+          // Ignore YAML comments.
+          if (YAML_COMMENT_REGEX.test(line)) {
+            continue;
+          }
+
+          for (const regex of regexes) {
+            const matches = line.matchAll(regex);
+            for (const match of matches) {
+              uris.push({
+                uri: match[0],
+                file: file.to,
+                line: change.ln,
+              });
+            }
+          }
         }
       }
     }

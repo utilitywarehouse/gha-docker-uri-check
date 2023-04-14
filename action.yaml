@@ -13,14 +13,12 @@ inputs:
         }
       }
     required: true
-  working-directory:
-    description: The directory to look for files
-    required: false
-    default: './'
-  patterns:
-    description: Glob patterns for files to match
-    required: false
-    default: '["**/*.yaml", "**/*.yml"]'
+  merge-base:
+    description: The branch name or ref to compare against such as "master" whatever branch a PR is being merged into.
+    required: true
+  file-extensions:
+    description: A comma separated list of file extensions that should be checked for Docker image URIs.
+    required: true
 runs:
   using: node16
   main: dist/index.js

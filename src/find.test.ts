@@ -1,48 +1,83 @@
+import * as fs from "node:fs";
 import * as test from "tape";
-import { dockerImageURIFinder } from "./find";
+import { dockerImageURIFinder, DockerURIMatch } from "./find";
 
-test("docker URI finder", async (t) => {
-  const find = dockerImageURIFinder([{ endpoint: "registry.uw.systems" }]);
+interface Test {
+  name: string;
+  file: string;
+  expected: DockerURIMatch[];
+}
 
-  t.test("empty file", async (t) => {
-    const matches = find("test-fixtures/empty.yaml");
-    t.deepEqual(matches, []);
-  });
-
-  t.test("commented out", async (t) => {
-    const matches = find("test-fixtures/commented.yaml");
-    t.deepEqual(matches, []);
-  });
-
-  t.test("single URI", async (t) => {
-    const matches = find("test-fixtures/single.yaml");
-    t.deepEqual(matches, [
+const tests: Test[] = [
+  {
+    name: "empty file",
+    file: "test-fixtures/empty.diff",
+    expected: [],
+  },
+  {
+    name: "commented out",
+    file: "test-fixtures/commented.diff",
+    expected: [],
+  },
+  {
+    name: "single URI",
+    file: "test-fixtures/single.diff",
+    expected: [
       {
-        uri: "registry.uw.systems/partner-planner/analytics-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e",
-        file: "test-fixtures/single.yaml",
-        line: 61,
+        uri: "registry.uw.systems/partner-planner/backend:foo",
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 58,
       },
-    ]);
-  });
-
-  t.test("multiple URIs in same file", async (t) => {
-    const matches = find("test-fixtures/multiple.yaml");
-    t.deepEqual(matches, [
+    ],
+  },
+  {
+    name: "multiple URIs in same file",
+    file: "test-fixtures/multiple.diff",
+    expected: [
       {
-        uri: "registry.uw.systems/partner-planner/analytics-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e",
-        file: "test-fixtures/multiple.yaml",
-        line: 61,
+        uri: "registry.uw.systems/partner-planner/backend:c95a126b5dfbce50483aa52dc0a49ff968b8c15e",
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 58,
       },
       {
         uri: "registry.uw.systems/partner-planner/something-else:latest",
-        file: "test-fixtures/multiple.yaml",
-        line: 61,
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 121,
       },
       {
         uri: "registry.uw.systems/partner-planner/foo:bar",
-        file: "test-fixtures/multiple.yaml",
-        line: 97,
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 123,
       },
-    ]);
-  });
+    ],
+  },
+  {
+    name: "URIs from changes in multiple files",
+    file: "test-fixtures/multiple-files.diff",
+    expected: [
+      {
+        uri: "registry.uw.systems/partner-planner/assistant-cards:bar",
+        file: "prod-aws/partner-planner/assistant-card-reader.yaml",
+        line: 25,
+      },
+      {
+        uri: "registry.uw.systems/partner-planner/backend:foo",
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 58,
+      },
+    ],
+  },
+];
+
+test("docker URI finder", (t) => {
+  const find = dockerImageURIFinder([{ endpoint: "registry.uw.systems" }]);
+
+  for (const test of tests) {
+    t.test(test.name, (t) => {
+      const diff = fs.readFileSync(test.file).toString();
+      const matches = find(diff);
+      t.deepEqual(matches, test.expected);
+      t.end();
+    });
+  }
 });
