@@ -3,7 +3,15 @@ description: Finds and checks Docker URIs against the provided registries
 author: Damian <dwood@uw.co.uk>
 inputs:
   docker-registries:
-    description: A map of Docker registries endpoints to credentials
+    description: |
+      A map of Docker registry endpoints to credentials.
+      Example value:
+      {
+        "registry.uw.systems": {
+          "username": "somebody",
+          "password": "the password",
+        }
+      }
     required: true
   working-directory:
     description: The directory to look for files
