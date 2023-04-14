@@ -62378,8 +62378,8 @@ function getDockerRegistriesFromInput() {
     }));
 }
 function gitDiff(mergeBase, allowedExtensions) {
-    const extensionFilter = allowedExtensions.map((ext) => "*." + ext).join(" ");
-    const output = node_child_process.spawnSync("git", ["diff", "--merge-base", mergeBase, "--", extensionFilter], {
+    const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
+    const output = node_child_process.spawnSync("git", ["diff", "--merge-base", mergeBase, "--", ...extensionFilter], {
         timeout: 5000,
         maxBuffer: 10 * 1024 * 1024,
     });

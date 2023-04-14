@@ -87,11 +87,11 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
 }
 
 function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
-  const extensionFilter = allowedExtensions.map((ext) => "*." + ext).join(" ");
+  const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
 
   const output = spawnSync(
     "git",
-    ["diff", "--merge-base", mergeBase, "--", extensionFilter],
+    ["diff", "--merge-base", mergeBase, "--", ...extensionFilter],
     {
       timeout: 5000,
       maxBuffer: 10 * 1024 * 1024,
