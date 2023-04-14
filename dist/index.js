@@ -20,43 +20,18 @@ var require$$1$3 = require('zlib');
 var require$$0$8 = require('punycode');
 
 function _mergeNamespaces(n, m) {
-    m.forEach(function (e) {
-        e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
-            if (k !== 'default' && !(k in n)) {
-                var d = Object.getOwnPropertyDescriptor(e, k);
-                Object.defineProperty(n, k, d.get ? d : {
-                    enumerable: true,
-                    get: function () { return e[k]; }
-                });
-            }
-        });
-    });
-    return Object.freeze(n);
-}
-
-/******************************************************************************
-Copyright (c) Microsoft Corporation.
-
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted.
-
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
-***************************************************************************** */
-
-function __awaiter$1(thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
+	m.forEach(function (e) {
+		e && typeof e !== 'string' && !Array.isArray(e) && Object.keys(e).forEach(function (k) {
+			if (k !== 'default' && !(k in n)) {
+				var d = Object.getOwnPropertyDescriptor(e, k);
+				Object.defineProperty(n, k, d.get ? d : {
+					enumerable: true,
+					get: function () { return e[k]; }
+				});
+			}
+		});
+	});
+	return Object.freeze(n);
 }
 
 var commonjsGlobal = typeof globalThis !== 'undefined' ? globalThis : typeof window !== 'undefined' ? window : typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : {};
@@ -817,16 +792,16 @@ function version$3(uuid) {
 }
 
 var esmBrowser = /*#__PURE__*/Object.freeze({
-    __proto__: null,
-    NIL: nil,
-    parse: parse$1,
-    stringify: stringify$1,
-    v1: v1$2,
-    v3: v3$1,
-    v4: v4$2,
-    v5: v5$1,
-    validate: validate,
-    version: version$3
+	__proto__: null,
+	NIL: nil,
+	parse: parse$1,
+	stringify: stringify$1,
+	v1: v1$2,
+	v3: v3$1,
+	v4: v4$2,
+	v5: v5$1,
+	validate: validate,
+	version: version$3
 });
 
 var require$$2$1 = /*@__PURE__*/getAugmentedNamespace(esmBrowser);
@@ -62272,44 +62247,41 @@ var lib = {
 };
 
 function dockerRegistryChecker(registries) {
-    return function check(uri) {
-        var _a;
-        return __awaiter$1(this, void 0, void 0, function* () {
-            const registry = registries.find((registry) => uri.startsWith(registry.endpoint));
-            if (!registry) {
-                throw Error("Couldn't find a registry for Docker URI");
-            }
-            const [repoName, tag] = uri.split(":");
-            // Unfortunately, the docker-registry-client library requires a full registry URL, so we can't cache this.
-            const client = lib.createClientV2({
-                name: repoName,
-                username: registry.username,
-                password: registry.password,
-            });
-            try {
-                yield new Promise((resolve, reject) => {
-                    client.getManifest({ ref: tag }, (err, manifest) => {
-                        if (err) {
-                            reject(err);
-                        }
-                        else {
-                            resolve(manifest);
-                        }
-                    });
-                });
-            }
-            catch (error) {
-                if (((_a = error.body) === null || _a === void 0 ? void 0 : _a.code) === "NotFoundError") {
-                    return "not_found";
-                }
-                throw error;
-            }
-            finally {
-                // Need to close otherwise the program hangs and never exits.
-                client.close();
-            }
-            return "ok";
+    return async function check(uri) {
+        const registry = registries.find((registry) => uri.startsWith(registry.endpoint));
+        if (!registry) {
+            throw Error("Couldn't find a registry for Docker URI");
+        }
+        const [repoName, tag] = uri.split(":");
+        // Unfortunately, the docker-registry-client library requires a full registry URL, so we can't cache this.
+        const client = lib.createClientV2({
+            name: repoName,
+            username: registry.username,
+            password: registry.password,
         });
+        try {
+            await new Promise((resolve, reject) => {
+                client.getManifest({ ref: tag }, (err, manifest) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    else {
+                        resolve(manifest);
+                    }
+                });
+            });
+        }
+        catch (error) {
+            if (error.body?.code === "NotFoundError") {
+                return "not_found";
+            }
+            throw error;
+        }
+        finally {
+            // Need to close otherwise the program hangs and never exits.
+            client.close();
+        }
+        return "ok";
     };
 }
 
@@ -62318,8 +62290,8 @@ function _typeof(obj){"@babel/helpers - typeof";return _typeof="function"==typeo
 var index = /*@__PURE__*/getDefaultExportFromCjs(parseDiff);
 
 var parseDiff$1 = /*#__PURE__*/_mergeNamespaces({
-    __proto__: null,
-    default: index
+	__proto__: null,
+	default: index
 }, [parseDiff]);
 
 const YAML_COMMENT_REGEX = /^\s*#/;
@@ -62367,57 +62339,61 @@ function escapeRegExp(str) {
 
 const MAX_CHECKS = 1000;
 // Entry point for the GitHub Action.
-(function run() {
-    return __awaiter$1(this, void 0, void 0, function* () {
-        const registries = getDockerRegistriesFromInput();
-        const findURIs = dockerImageURIFinder(registries);
-        const checkURI = dockerRegistryChecker(registries);
-        // The ref to compare against. This is usually "master" or whatever branch a PR is set to merge into.
-        const mergeBase = coreExports.getInput("merge-base");
-        // Restrict the diff to files with these extensions.
-        const fileExtensions = coreExports.getInput("file-extensions")
-            .split(",")
-            .map((ext) => ext.trim());
-        const diff = gitDiff(mergeBase, fileExtensions);
-        const matches = findURIs(diff);
-        // Don't check too many URIs, as this could cause a crash.
-        if (matches.length > MAX_CHECKS) {
-            coreExports.setFailed(`Found too many Docker URIs to check: ${matches.length} (max: ${MAX_CHECKS})`);
-            return;
+(async function run() {
+    const registries = getDockerRegistriesFromInput();
+    const findURIs = dockerImageURIFinder(registries);
+    const checkURI = dockerRegistryChecker(registries);
+    // The ref to compare against. This is usually "master" or whatever branch a PR is set to merge into.
+    const mergeBase = coreExports.getInput("merge-base");
+    // Restrict the diff to files with these extensions.
+    const fileExtensions = coreExports.getInput("file-extensions")
+        .split(",")
+        .map((ext) => ext.trim());
+    const diff = gitDiff(mergeBase, fileExtensions);
+    const matches = findURIs(diff);
+    // Don't check too many URIs, as this could cause a crash.
+    if (matches.length > MAX_CHECKS) {
+        coreExports.setFailed(`Found too many Docker URIs to check: ${matches.length} (max: ${MAX_CHECKS})`);
+        return;
+    }
+    for (const match of matches) {
+        const annotation = {
+            file: match.file,
+            startLine: match.line,
+        };
+        let status;
+        try {
+            status = await checkURI(match.uri);
         }
-        for (const match of matches) {
-            const annotation = {
-                file: match.file,
-                startLine: match.line,
-            };
-            let status;
-            try {
-                status = yield checkURI(match.uri);
-            }
-            catch (error) {
-                coreExports.error(`Check for "${match.uri}" failed due to: ${error}`, Object.assign(Object.assign({}, annotation), { title: "Docker image check failed" }));
-                continue;
-            }
-            switch (status) {
-                case "not_found":
-                    coreExports.error(`The image "${match.uri}" does not exist. Is the tag correct?`, Object.assign(Object.assign({}, annotation), { title: "Non-existent Docker image" }));
-                    break;
-                // case "outdated":
-                //   core.warning(
-                //     `The image "${uri.uri}" does not correspond to the "latest" tag. Is this ok?`,
-                //     {
-                //       ...annotation,
-                //       title: "Outdated Docker image",
-                //     }
-                //   );
-                //   break;
-            }
+        catch (error) {
+            coreExports.error(`Check for "${match.uri}" failed due to: ${error}`, {
+                ...annotation,
+                title: "Docker image check failed",
+            });
+            continue;
         }
-    });
+        switch (status) {
+            case "not_found":
+                coreExports.error(`The image "${match.uri}" does not exist. Is the tag correct?`, { ...annotation, title: "Non-existent Docker image" });
+                break;
+            // case "outdated":
+            //   core.warning(
+            //     `The image "${uri.uri}" does not correspond to the "latest" tag. Is this ok?`,
+            //     {
+            //       ...annotation,
+            //       title: "Outdated Docker image",
+            //     }
+            //   );
+            //   break;
+        }
+    }
 })();
 function getDockerRegistriesFromInput() {
     const registriesInput = JSON.parse(coreExports.getInput("docker-registries"));
-    return Object.entries(registriesInput).map(([endpoint, values]) => (Object.assign({ endpoint }, values)));
+    return Object.entries(registriesInput).map(([endpoint, values]) => ({
+        endpoint,
+        ...values,
+    }));
 }
 function gitDiff(mergeBase, allowedExtensions) {
     const extensionFilter = allowedExtensions
@@ -62432,4 +62408,3 @@ function gitDiff(mergeBase, allowedExtensions) {
     }
     return output.stdout.toString();
 }
-//# sourceMappingURL=index.js.map
