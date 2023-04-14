@@ -32,6 +32,8 @@ const MAX_CHECKS = 1000;
     return;
   }
 
+  let criticalError = false;
+
   for (const match of matches) {
     const annotation = {
       file: match.file,
@@ -51,6 +53,7 @@ const MAX_CHECKS = 1000;
 
     switch (status) {
       case "not_found":
+        criticalError = true;
         github.error(
           `The image "${match.uri}" does not exist. Is the tag correct?`,
           { ...annotation, title: "Non-existent Docker image" }
@@ -66,6 +69,10 @@ const MAX_CHECKS = 1000;
       //   );
       //   break;
     }
+  }
+
+  if (criticalError) {
+    github.setFailed("Check failed");
   }
 })();
 
