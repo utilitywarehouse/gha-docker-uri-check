@@ -62332,7 +62332,7 @@ const MAX_CHECKS = 1000;
         .split(",")
         .map((ext) => ext.trim());
     const diff = gitDiff(mergeBase, fileExtensions);
-    github.debug("Diff is: " + diff);
+    console.log("Diff is: " + diff);
     const matches = findURIs(diff);
     // Don't check too many URIs, as this could cause a crash.
     if (matches.length > MAX_CHECKS) {

@@ -22,7 +22,7 @@ const MAX_CHECKS = 1000;
     .map((ext) => ext.trim());
 
   const diff = gitDiff(mergeBase, fileExtensions);
-  github.debug("Diff is: " + diff);
+  console.log("Diff is: " + diff);
 
   const matches = findURIs(diff);
 
