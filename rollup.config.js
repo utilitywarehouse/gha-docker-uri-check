@@ -8,6 +8,7 @@ module.exports = {
   output: {
     dir: "dist",
     format: "cjs",
+    strict: false,
   },
   plugins: [
     typescript({ module: "ESNext" }),

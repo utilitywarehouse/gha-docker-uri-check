@@ -1,5 +1,3 @@
-'use strict';
-
 var node_child_process = require('node:child_process');
 var require$$0$1 = require('os');
 var require$$1 = require('fs');
