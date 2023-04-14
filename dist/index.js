@@ -62379,8 +62379,8 @@ function getDockerRegistriesFromInput() {
     }));
 }
 function gitDiff(mergeBase, allowedExtensions) {
-    const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
-    const args = ["diff", "--merge-base", mergeBase, "--", ...extensionFilter];
+    allowedExtensions.map((ext) => "*." + ext);
+    const args = ["diff", "--merge-base", mergeBase];
     console.log("Args: ", args);
     console.log("CWD: ", process.cwd());
     const output = node_child_process.spawnSync("git", args, {

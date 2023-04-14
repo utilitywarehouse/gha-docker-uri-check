@@ -90,7 +90,7 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
 function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
   const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
 
-  const args = ["diff", "--merge-base", mergeBase, "--", ...extensionFilter];
+  const args = ["diff", "--merge-base", mergeBase];
   console.log("Args: ", args);
   console.log("CWD: ", process.cwd());
 
