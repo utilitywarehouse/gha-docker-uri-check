@@ -22,7 +22,6 @@ const MAX_CHECKS = 1000;
     .map((ext) => ext.trim());
 
   const diff = gitDiff(mergeBase, fileExtensions);
-  console.log("Diff: ", diff);
   const matches = findURIs(diff);
 
   // Don't check too many URIs, as this could cause a crash.
@@ -90,14 +89,14 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
 function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
   const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
 
-  const args = ["diff", "--merge-base", mergeBase];
-  console.log("Args: ", args);
-  console.log("CWD: ", process.cwd());
-
-  const output = spawnSync("git", args, {
-    timeout: 5000,
-    maxBuffer: 10 * 1024 * 1024,
-  });
+  const output = spawnSync(
+    "git",
+    ["diff", "--merge-base", mergeBase, ...extensionFilter],
+    {
+      timeout: 5000,
+      maxBuffer: 10 * 1024 * 1024,
+    }
+  );
 
   if (output.status !== 0) {
     throw "Git diff command failed due to: " + output.stderr.toString();
