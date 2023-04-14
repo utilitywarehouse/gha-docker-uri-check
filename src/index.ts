@@ -98,6 +98,7 @@ function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
     timeout: 5000,
     maxBuffer: 10 * 1024 * 1024,
   });
+  console.error("Error: ", output.stderr.toString());
   if (output.error) {
     throw output.error;
   }
