@@ -62332,7 +62332,6 @@ const MAX_CHECKS = 1000;
         .split(",")
         .map((ext) => ext.trim());
     const diff = gitDiff(mergeBase, fileExtensions);
-    console.log("Diff is: " + diff);
     const matches = findURIs(diff);
     // Don't check too many URIs, as this could cause a crash.
     if (matches.length > MAX_CHECKS) {
@@ -62379,9 +62378,7 @@ function getDockerRegistriesFromInput() {
     }));
 }
 function gitDiff(mergeBase, allowedExtensions) {
-    const extensionFilter = allowedExtensions
-        .map((ext) => `'*.${ext}'`)
-        .join(" ");
+    const extensionFilter = allowedExtensions.map((ext) => "*." + ext).join(" ");
     const output = node_child_process.spawnSync("git", ["diff", "--merge-base", mergeBase, "--", extensionFilter], {
         timeout: 5000,
         maxBuffer: 10 * 1024 * 1024,
