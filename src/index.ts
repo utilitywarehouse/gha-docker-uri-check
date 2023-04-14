@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import * as github from "@actions/core";
+import github from "@actions/core";
 
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";
@@ -32,6 +32,8 @@ const MAX_CHECKS = 1000;
     return;
   }
 
+  let criticalError = false;
+
   for (const match of matches) {
     const annotation = {
       file: match.file,
@@ -46,11 +48,12 @@ const MAX_CHECKS = 1000;
         ...annotation,
         title: "Docker image check failed",
       });
-      continue;
+      throw error;
     }
 
     switch (status) {
       case "not_found":
+        criticalError = true;
         github.error(
           `The image "${match.uri}" does not exist. Is the tag correct?`,
           { ...annotation, title: "Non-existent Docker image" }
@@ -66,6 +69,10 @@ const MAX_CHECKS = 1000;
       //   );
       //   break;
     }
+  }
+
+  if (criticalError) {
+    github.setFailed("Check failed");
   }
 })();
 
@@ -87,20 +94,20 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
 }
 
 function gitDiff(mergeBase: string, allowedExtensions: string[]): string {
-  const extensionFilter = allowedExtensions
-    .map((ext) => `'*.${ext}'`)
-    .join(" ");
+  const extensionFilter = allowedExtensions.map((ext) => "*." + ext);
 
   const output = spawnSync(
     "git",
-    ["diff", "--merge-base", mergeBase, "--", extensionFilter],
+    ["diff", "--merge-base", mergeBase, ...extensionFilter],
     {
       timeout: 5000,
       maxBuffer: 10 * 1024 * 1024,
     }
   );
-  if (output.error) {
-    throw output.error;
+
+  if (output.status !== 0) {
+    throw "Git diff command failed due to: " + output.stderr.toString();
   }
+
   return output.stdout.toString();
 }

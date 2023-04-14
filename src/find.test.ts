@@ -1,5 +1,5 @@
-import * as fs from "node:fs";
-import * as test from "tape";
+import fs from "node:fs";
+import test from "tape";
 import { dockerImageURIFinder, DockerURIMatch } from "./find";
 
 interface Test {

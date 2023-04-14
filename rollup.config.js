@@ -8,10 +8,10 @@ module.exports = {
   output: {
     dir: "dist",
     format: "cjs",
-    sourcemap: true,
+    strict: false,
   },
   plugins: [
-    typescript({ module: "ESNext", sourceMap: true }),
+    typescript({ module: "ESNext" }),
     json(),
     commonjs(),
     nodeResolve({ preferBuiltins: false }),
