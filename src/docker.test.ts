@@ -1,5 +1,5 @@
-import * as test from "tape";
-import * as dotenv from "dotenv";
+import test from "tape";
+import dotenv from "dotenv";
 import { dockerRegistryChecker } from "./docker";
 
 dotenv.config();

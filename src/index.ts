@@ -1,5 +1,5 @@
 import { spawnSync } from "node:child_process";
-import * as github from "@actions/core";
+import github from "@actions/core";
 
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
 import { dockerImageURIFinder } from "./find";

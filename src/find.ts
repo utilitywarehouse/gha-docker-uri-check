@@ -1,4 +1,4 @@
-import * as parseDiff from "parse-diff";
+import parseDiff from "parse-diff";
 
 const YAML_COMMENT_REGEX = /^\s*#/;
 
