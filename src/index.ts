@@ -12,7 +12,8 @@ const MAX_CHECKS = 1000;
   const findURIs = dockerImageURIFinder(registries);
   const checkURI = dockerRegistryChecker(registries);
 
-  const files = await glob(github.getInput("patterns"), {
+  const patterns = JSON.parse(github.getInput("patterns")) as string[];
+  const files = await glob(patterns, {
     cwd: github.getInput("working-directory"),
     nodir: true,
   });
@@ -71,9 +72,9 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
       password: string;
     };
   }
-  const registriesInput = github.getInput("docker-registries", {
-    required: true,
-  }) as unknown as DockerRegistriesInput;
+  const registriesInput = JSON.parse(
+    github.getInput("docker-registries")
+  ) as DockerRegistriesInput;
 
   return Object.entries(registriesInput).map(([endpoint, values]) => ({
     endpoint,

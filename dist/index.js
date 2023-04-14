@@ -69735,7 +69735,8 @@ const MAX_CHECKS = 1000;
         const registries = getDockerRegistriesFromInput();
         const findURIs = dockerImageURIFinder(registries);
         const checkURI = dockerRegistryChecker(registries);
-        const files = yield glob(coreExports.getInput("patterns"), {
+        const patterns = JSON.parse(coreExports.getInput("patterns"));
+        const files = yield glob(patterns, {
             cwd: coreExports.getInput("working-directory"),
             nodir: true,
         });
@@ -69776,8 +69777,6 @@ const MAX_CHECKS = 1000;
     });
 })();
 function getDockerRegistriesFromInput() {
-    const registriesInput = coreExports.getInput("docker-registries", {
-        required: true,
-    });
+    const registriesInput = JSON.parse(coreExports.getInput("docker-registries"));
     return Object.entries(registriesInput).map(([endpoint, values]) => (Object.assign({ endpoint }, values)));
 }
