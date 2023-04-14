@@ -1,4 +1,4 @@
-import * as core from "@actions/core";
+import * as github from "@actions/core";
 import { glob } from "glob";
 
 import { DockerRegistry, dockerRegistryChecker, Status } from "./docker";
@@ -12,8 +12,8 @@ const MAX_CHECKS = 1000;
   const findURIs = dockerImageURIFinder(registries);
   const checkURI = dockerRegistryChecker(registries);
 
-  const files = await glob(core.getInput("patterns"), {
-    cwd: core.getInput("working-directory"),
+  const files = await glob(github.getInput("patterns"), {
+    cwd: github.getInput("working-directory"),
     nodir: true,
   });
 
@@ -21,7 +21,7 @@ const MAX_CHECKS = 1000;
 
   // Don't check too many URIs, as this could cause a crash.
   if (matches.length > MAX_CHECKS) {
-    core.setFailed(
+    github.setFailed(
       `Found too many Docker URIs to check: ${matches.length} (max: ${MAX_CHECKS})`
     );
     return;
@@ -37,7 +37,7 @@ const MAX_CHECKS = 1000;
     try {
       status = await checkURI(match.uri);
     } catch (error) {
-      core.error(`Check for "${match.uri}" failed due to: ${error}`, {
+      github.error(`Check for "${match.uri}" failed due to: ${error}`, {
         ...annotation,
         title: "Docker image check failed",
       });
@@ -46,7 +46,7 @@ const MAX_CHECKS = 1000;
 
     switch (status) {
       case "not_found":
-        core.error(
+        github.error(
           `The image "${match.uri}" does not exist. Is the tag correct?`,
           { ...annotation, title: "Non-existent Docker image" }
         );
@@ -71,7 +71,7 @@ function getDockerRegistriesFromInput(): DockerRegistry[] {
       password: string;
     };
   }
-  const registriesInput = core.getInput("docker-registries", {
+  const registriesInput = github.getInput("docker-registries", {
     required: true,
   }) as unknown as DockerRegistriesInput;
 
