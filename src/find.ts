@@ -1,9 +1,9 @@
 import fs from "node:fs";
 import parseDiff from "parse-diff";
-import YAML, { Scalar, LineCounter, YAMLMap } from "yaml";
+import YAML, { LineCounter, YAMLMap } from "yaml";
 
 const YAML_COMMENT_REGEX = /^\s*#/;
-const KUSTOMIZE_NEW_TAG_REGEX = /^\s*newTag:\s*([\w-_]+)\b/;
+const KUSTOMIZE_REGEX = /^\s*newName|newTag:/;
 
 interface DockerRegistry {
   endpoint: string;
@@ -32,11 +32,10 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     lineNumber: number,
     file: string
   ): DockerURIMatch {
-    const match = line.match(KUSTOMIZE_NEW_TAG_REGEX);
+    const match = line.match(KUSTOMIZE_REGEX);
     if (!match) {
       return null;
     }
-    const tag = match[1];
 
     const contents = fs.readFileSync(file).toString();
 
@@ -53,21 +52,18 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     // Find the newTag node so we can look up the image it belongs to.
     YAML.visit(document, {
       Scalar(_, node, path) {
-        if (
-          node.value !== tag ||
-          // Ensure the tag is on the expected line.
-          lineCounter.linePos(node.srcToken.offset).line !== lineNumber
-        ) {
+        if (lineCounter.linePos(node.srcToken.offset).line !== lineNumber) {
           return;
         }
 
-        const parent = path[path.length - 2] as YAMLMap;
+        const image = path[path.length - 2];
 
-        if (!parent) {
+        if (!image || !(image instanceof YAMLMap)) {
           return YAML.visit.SKIP;
         }
 
-        const imageName = parent.get("newName") ?? parent.get("name");
+        const imageName = image.get("newName") ?? image.get("name");
+        const tag = image.get("newTag");
 
         uri = {
           uri: imageName + ":" + tag,
