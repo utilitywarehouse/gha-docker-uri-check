@@ -42,10 +42,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     const lineCounter = new LineCounter();
 
     // Parse the YAML file into an AST so we can traverse it.
-    const document = YAML.parseDocument(contents, {
-      keepSourceTokens: true,
-      lineCounter,
-    });
+    const document = YAML.parseDocument(contents, { lineCounter });
 
     let uri: DockerURIMatch;
 
@@ -53,7 +50,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     YAML.visit(document, {
       Scalar(_, node, path) {
         // We only care about the node on the change's line number.
-        if (lineCounter.linePos(node.srcToken.offset).line !== lineNumber) {
+        if (lineCounter.linePos(node.range[0]).line !== lineNumber) {
           return;
         }
 
