@@ -41,53 +41,60 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     // Parse the YAML file into an AST so we can traverse it.
     const lineCounter = new LineCounter();
-    const document = YAML.parseDocument(contents, { lineCounter });
+    const documents = YAML.parseAllDocuments(contents, { lineCounter });
 
-    // We only care about Kustomization manifests.
-    if (document.get("kind") !== "Kustomization") {
-      return null;
+    for (const document of documents) {
+      // We only care about Kustomization manifests.
+      if (document.get("kind") !== "Kustomization") {
+        continue;
+      }
+
+      let result: DockerURIMatch;
+
+      // Find the newTag node so we can look up the image it belongs to.
+      YAML.visit(document, {
+        Scalar(_, node, path) {
+          // We only care about the node on the change's line number.
+          if (lineCounter.linePos(node.range[0]).line !== lineNumber) {
+            return;
+          }
+
+          // Find the image entry from the "images" list.
+          const image = path[path.length - 2];
+          if (!(image instanceof YAMLMap)) {
+            return YAML.visit.SKIP;
+          }
+
+          const imageName = (image.get("newName") ??
+            image.get("name")) as string;
+
+          // Skip any images that don't belong to the registries we care about.
+          if (
+            !registries.some((registry) =>
+              imageName.startsWith(registry.endpoint)
+            )
+          ) {
+            return YAML.visit.SKIP;
+          }
+
+          const tag = image.get("newTag");
+
+          result = {
+            uri: imageName + ":" + tag,
+            line: lineNumber,
+            file,
+          };
+
+          return YAML.visit.BREAK;
+        },
+      });
+
+      if (result) {
+        return result;
+      }
     }
 
-    let result: DockerURIMatch;
-
-    // Find the newTag node so we can look up the image it belongs to.
-    YAML.visit(document, {
-      Scalar(_, node, path) {
-        // We only care about the node on the change's line number.
-        if (lineCounter.linePos(node.range[0]).line !== lineNumber) {
-          return;
-        }
-
-        // Find the image entry from the "images" list.
-        const image = path[path.length - 2];
-        if (!(image instanceof YAMLMap)) {
-          return YAML.visit.SKIP;
-        }
-
-        const imageName = (image.get("newName") ?? image.get("name")) as string;
-
-        // Skip any images that don't belong to the registries we care about.
-        if (
-          !registries.some((registry) =>
-            imageName.startsWith(registry.endpoint)
-          )
-        ) {
-          return YAML.visit.SKIP;
-        }
-
-        const tag = image.get("newTag");
-
-        result = {
-          uri: imageName + ":" + tag,
-          line: lineNumber,
-          file,
-        };
-
-        return YAML.visit.BREAK;
-      },
-    });
-
-    return result;
+    return null;
   }
 
   return function find(diff: string): DockerURIMatch[] {
