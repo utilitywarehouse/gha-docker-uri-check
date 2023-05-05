@@ -39,12 +39,11 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     const contents = fs.readFileSync(file).toString();
 
-    const lineCounter = new LineCounter();
-
     // Parse the YAML file into an AST so we can traverse it.
+    const lineCounter = new LineCounter();
     const document = YAML.parseDocument(contents, { lineCounter });
 
-    let uri: DockerURIMatch;
+    let result: DockerURIMatch;
 
     // Find the newTag node so we can look up the image it belongs to.
     YAML.visit(document, {
@@ -63,7 +62,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
         const imageName = image.get("newName") ?? image.get("name");
         const tag = image.get("newTag");
 
-        uri = {
+        result = {
           uri: imageName + ":" + tag,
           line: lineNumber,
           file,
@@ -73,7 +72,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       },
     });
 
-    return uri;
+    return result;
   }
 
   return function find(diff: string): DockerURIMatch[] {
