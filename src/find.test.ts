@@ -31,6 +31,17 @@ const tests: Test[] = [
     ],
   },
   {
+    name: "special characters in tag ",
+    file: "test-fixtures/special-characters.diff",
+    expected: [
+      {
+        uri: "registry.uw.systems/partner-planner/backend:foo-bar_har",
+        file: "prod-aws/partner-planner/backend.yaml",
+        line: 58,
+      },
+    ],
+  },
+  {
     name: "multiple URIs in same file",
     file: "test-fixtures/multiple.diff",
     expected: [
