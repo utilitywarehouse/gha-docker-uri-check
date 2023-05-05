@@ -43,6 +43,11 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     const lineCounter = new LineCounter();
     const document = YAML.parseDocument(contents, { lineCounter });
 
+    // We only care about Kustomization manifests.
+    if (document.get("kind") !== "Kustomization") {
+      return null;
+    }
+
     let result: DockerURIMatch;
 
     // Find the newTag node so we can look up the image it belongs to.
@@ -59,7 +64,17 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
           return YAML.visit.SKIP;
         }
 
-        const imageName = image.get("newName") ?? image.get("name");
+        const imageName = (image.get("newName") ?? image.get("name")) as string;
+
+        // Skip any images that don't belong to the registries we care about.
+        if (
+          !registries.some((registry) =>
+            imageName.startsWith(registry.endpoint)
+          )
+        ) {
+          return YAML.visit.SKIP;
+        }
+
         const tag = image.get("newTag");
 
         result = {
