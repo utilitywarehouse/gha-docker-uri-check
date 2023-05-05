@@ -28,11 +28,11 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
   );
 
   function uriFromKustomize(
-    line: string,
+    content: string,
     lineNumber: number,
     file: string
   ): DockerURIMatch {
-    const match = line.match(KUSTOMIZE_REGEX);
+    const match = content.match(KUSTOMIZE_REGEX);
     if (!match) {
       return null;
     }
@@ -41,7 +41,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     const lineCounter = new LineCounter();
 
-    // Parses into an AST, not a JS object.
+    // Parse the YAML file into an AST so we can traverse it.
     const document = YAML.parseDocument(contents, {
       keepSourceTokens: true,
       lineCounter,
@@ -52,13 +52,14 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     // Find the newTag node so we can look up the image it belongs to.
     YAML.visit(document, {
       Scalar(_, node, path) {
+        // We only care about the node on the change's line number.
         if (lineCounter.linePos(node.srcToken.offset).line !== lineNumber) {
           return;
         }
 
+        // Find the image entry from the "images" list.
         const image = path[path.length - 2];
-
-        if (!image || !(image instanceof YAMLMap)) {
+        if (!(image instanceof YAMLMap)) {
           return YAML.visit.SKIP;
         }
 
