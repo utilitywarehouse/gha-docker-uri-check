@@ -27,7 +27,11 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       )
   );
 
-  function uriFromKustomize(line: string, file: string): DockerURIMatch {
+  function uriFromKustomize(
+    line: string,
+    lineNumber: number,
+    file: string
+  ): DockerURIMatch {
     const match = line.match(KUSTOMIZE_NEW_TAG_REGEX);
     if (!match) {
       return null;
@@ -49,7 +53,11 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
     // Find the newTag node so we can look up the image it belongs to.
     YAML.visit(document, {
       Scalar(_, node, path) {
-        if (node.value !== tag) {
+        if (
+          node.value !== tag ||
+          // Ensure the tag is on the expected line.
+          lineCounter.linePos(node.srcToken.offset).line !== lineNumber
+        ) {
           return;
         }
 
@@ -63,7 +71,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
         uri = {
           uri: imageName + ":" + tag,
-          line: lineCounter.linePos(node.srcToken.offset).line,
+          line: lineNumber,
           file,
         };
 
@@ -95,7 +103,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
           let kustomizeMatch;
           try {
-            kustomizeMatch = uriFromKustomize(line, file.to);
+            kustomizeMatch = uriFromKustomize(line, change.ln, file.to);
           } catch (error) {
             console.error(
               "Error trying to extract URI using Kustomize heuristics:",
