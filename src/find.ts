@@ -1,6 +1,9 @@
+import fs from "node:fs";
 import parseDiff from "parse-diff";
+import YAML, { Scalar, LineCounter, YAMLMap } from "yaml";
 
 const YAML_COMMENT_REGEX = /^\s*#/;
+const KUSTOMIZE_NEW_TAG_REGEX = /^\s*newTag:\s*([\w-_]+)\b/;
 
 interface DockerRegistry {
   endpoint: string;
@@ -24,6 +27,53 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       )
   );
 
+  function uriFromKustomize(line: string, file: string): DockerURIMatch {
+    const match = line.match(KUSTOMIZE_NEW_TAG_REGEX);
+    if (!match) {
+      return null;
+    }
+    const tag = match[1];
+
+    const contents = fs.readFileSync(file).toString();
+
+    const lineCounter = new LineCounter();
+
+    // Parses into an AST, not a JS object.
+    const document = YAML.parseDocument(contents, {
+      keepSourceTokens: true,
+      lineCounter,
+    });
+
+    let uri: DockerURIMatch;
+
+    // Find the newTag node so we can look up the image it belongs to.
+    YAML.visit(document, {
+      Scalar(_, node, path) {
+        if (node.value !== tag) {
+          return;
+        }
+
+        const parent = path[path.length - 2] as YAMLMap;
+
+        if (!parent) {
+          return YAML.visit.SKIP;
+        }
+
+        const imageName = parent.get("newName") ?? parent.get("name");
+
+        uri = {
+          uri: imageName + ":" + tag,
+          line: lineCounter.linePos(node.srcToken.offset).line,
+          file,
+        };
+
+        return YAML.visit.BREAK;
+      },
+    });
+
+    return uri;
+  }
+
   return function find(diff: string): DockerURIMatch[] {
     const files = parseDiff(diff);
     const uris: DockerURIMatch[] = [];
@@ -40,6 +90,21 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
           // Ignore YAML comments.
           if (YAML_COMMENT_REGEX.test(line)) {
+            continue;
+          }
+
+          let kustomizeMatch;
+          try {
+            kustomizeMatch = uriFromKustomize(line, file.to);
+          } catch (error) {
+            console.error(
+              "Error trying to extract URI using Kustomize heuristics:",
+              error
+            );
+            continue;
+          }
+          if (kustomizeMatch) {
+            uris.push(kustomizeMatch);
             continue;
           }
 

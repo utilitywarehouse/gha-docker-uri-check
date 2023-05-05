@@ -67,6 +67,17 @@ const tests: Test[] = [
       },
     ],
   },
+  {
+    name: "Kustomize newTag",
+    file: "test-fixtures/kustomize.diff",
+    expected: [
+      {
+        uri: "registry.uw.systems/auth/iam-auth-key-updater:foo",
+        file: "test-fixtures/kustomization.yaml",
+        line: 10,
+      },
+    ],
+  },
 ];
 
 test("docker URI finder", (t) => {
