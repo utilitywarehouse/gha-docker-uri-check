@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  # kube-applier: key_iam_mono
+  - ssh://github.com/utilitywarehouse/iam//k8s/auth-key-updater/dev?ref=4179350c7589181f44c578d197b9e5290a0f26ac
+
+images:
+  - name: registry.uw.systems/auth/iam-auth-key-updater
+    newName: registry.uw.systems/auth/iam-auth-key-updater2
+    newTag: foo
