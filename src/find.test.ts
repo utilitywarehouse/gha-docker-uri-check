@@ -69,11 +69,11 @@ const tests: Test[] = [
   },
   {
     name: "Kustomize newTag",
-    file: "test-fixtures/kustomize.diff",
+    file: "test-fixtures/kustomize-newTag/change.diff",
     expected: [
       {
         uri: "registry.uw.systems/auth/iam-auth-key-updater:foo",
-        file: "test-fixtures/kustomization.yaml",
+        file: "test-fixtures/kustomize-newTag/kustomization.yaml",
         line: 10,
       },
     ],
