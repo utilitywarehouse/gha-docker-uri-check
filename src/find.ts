@@ -23,6 +23,11 @@ interface Change {
   file: string;
 }
 
+interface ParsedYamlFile {
+  documents: YAML.Document[];
+  lineCounter: YAML.LineCounter;
+}
+
 export function dockerImageURIFinder(registries: DockerRegistry[]) {
   const regexes = registries.map(
     (registry) =>
@@ -35,17 +40,27 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       )
   );
 
+  // A cache of parsed YAML files to avoid parsing the same file on every change!
+  const yamlFiles = new Map<string, ParsedYamlFile>();
+
+  function parseYamlFile(path: string): ParsedYamlFile {
+    if (!yamlFiles.has(path)) {
+      const contents = fs.readFileSync(path).toString();
+      const lineCounter = new LineCounter();
+      const documents = YAML.parseAllDocuments(contents, { lineCounter });
+      yamlFiles.set(path, { lineCounter, documents });
+    }
+    return yamlFiles.get(path);
+  }
+
   function uriFromKustomize(change: Change): DockerURIMatch {
     const match = change.content.match(KUSTOMIZE_REGEX);
     if (!match) {
       return null;
     }
 
-    const contents = fs.readFileSync(change.file).toString();
-
     // Parse the YAML file into an AST so we can traverse it.
-    const lineCounter = new LineCounter();
-    const documents = YAML.parseAllDocuments(contents, { lineCounter });
+    const { documents, lineCounter } = parseYamlFile(change.file);
 
     for (const document of documents) {
       // We only care about Kustomization manifests.
