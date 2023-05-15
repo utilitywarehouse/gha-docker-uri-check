@@ -15,6 +15,14 @@ export interface DockerURIMatch {
   line: number;
 }
 
+type Finder = (change: Change) => DockerURIMatch;
+
+interface Change {
+  content: string;
+  lineNumber: number;
+  file: string;
+}
+
 export function dockerImageURIFinder(registries: DockerRegistry[]) {
   const regexes = registries.map(
     (registry) =>
@@ -27,17 +35,13 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       )
   );
 
-  function uriFromKustomize(
-    content: string,
-    lineNumber: number,
-    file: string
-  ): DockerURIMatch {
-    const match = content.match(KUSTOMIZE_REGEX);
+  function uriFromKustomize(change: Change): DockerURIMatch {
+    const match = change.content.match(KUSTOMIZE_REGEX);
     if (!match) {
       return null;
     }
 
-    const contents = fs.readFileSync(file).toString();
+    const contents = fs.readFileSync(change.file).toString();
 
     // Parse the YAML file into an AST so we can traverse it.
     const lineCounter = new LineCounter();
@@ -55,7 +59,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       YAML.visit(document, {
         Scalar(_, node, path) {
           // We only care about the node on the change's line number.
-          if (lineCounter.linePos(node.range[0]).line !== lineNumber) {
+          if (lineCounter.linePos(node.range[0]).line !== change.lineNumber) {
             return;
           }
 
@@ -81,8 +85,8 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
           result = {
             uri: imageName + ":" + tag,
-            line: lineNumber,
-            file,
+            line: change.lineNumber,
+            file: change.file,
           };
 
           return YAML.visit.BREAK;
@@ -96,6 +100,22 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
 
     return null;
   }
+
+  function uriFromRegex(change: Change): DockerURIMatch {
+    for (const regex of regexes) {
+      const matches = change.content.matchAll(regex);
+      for (const match of matches) {
+        return {
+          uri: match[0],
+          line: change.lineNumber,
+          file: change.file,
+        };
+      }
+    }
+    return null;
+  }
+
+  const finders: Finder[] = [uriFromKustomize, uriFromRegex];
 
   return function find(diff: string): DockerURIMatch[] {
     const files = parseDiff(diff);
@@ -116,29 +136,26 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
             continue;
           }
 
-          let kustomizeMatch;
-          try {
-            kustomizeMatch = uriFromKustomize(line, change.ln, file.to);
-          } catch (error) {
-            console.error(
-              "Error trying to extract URI using Kustomize heuristics:",
-              error
-            );
-            continue;
-          }
-          if (kustomizeMatch) {
-            uris.push(kustomizeMatch);
-            continue;
-          }
-
-          for (const regex of regexes) {
-            const matches = line.matchAll(regex);
-            for (const match of matches) {
-              uris.push({
-                uri: match[0],
+          // Try to find a Docker URI via one of the finders.
+          for (const finder of finders) {
+            let uri: DockerURIMatch;
+            try {
+              uri = finder({
+                content: line,
+                lineNumber: change.ln,
                 file: file.to,
-                line: change.ln,
               });
+            } catch (error) {
+              console.error(
+                `Error trying to extract URI via ${finder.name}:`,
+                error
+              );
+              continue;
+            }
+
+            if (uri) {
+              uris.push(uri);
+              break;
             }
           }
         }
