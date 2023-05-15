@@ -1,0 +1,9 @@
+diff --git a/test-fixtures/kustomize-newName/kustomization.yaml b/test-fixtures/kustomize-newName/kustomization.yaml
+index 87ac73a46d..02ed4ada40 100644
+--- a/test-fixtures/kustomize-newName/kustomization.yaml
++++ b/test-fixtures/kustomize-newName/kustomization.yaml
+@@ -7,4 +7,4 @@ resources:
+ 
+ images:
+   - name: registry.uw.systems/auth/iam-auth-key-updater
++    newName: registry.uw.systems/auth/iam-auth-key-updater2

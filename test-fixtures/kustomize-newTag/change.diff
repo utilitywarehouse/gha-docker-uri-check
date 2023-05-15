@@ -1,0 +1,10 @@
+diff --git a/test-fixtures/kustomize-newTag/kustomization.yaml b/test-fixtures/kustomize-newTag/kustomization.yaml
+index 87ac73a46d..02ed4ada40 100644
+--- a/test-fixtures/kustomize-newTag/kustomization.yaml
++++ b/test-fixtures/kustomize-newTag/kustomization.yaml
+@@ -7,4 +7,4 @@ resources:
+ 
+ images:
+   - name: registry.uw.systems/auth/iam-auth-key-updater
+-    newTag: 4179350c7589181f44c578d197b9e5290a0f26ac
++    newTag: foo
