@@ -81,7 +81,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
             return YAML.visit.SKIP;
           }
 
-          const tag = image.get("newTag");
+          const tag = image.get("newTag") ?? image.get("tag");
 
           result = {
             uri: imageName + ":" + tag,
