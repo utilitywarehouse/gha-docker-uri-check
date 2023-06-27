@@ -89,7 +89,7 @@ function createDockerClient(registry: DockerRegistry) {
   }
 
   return {
-    async tagExists(image: string, tag: string) {
+    async tagExists(image: string, tag: string): Promise<boolean> {
       const result = await fetchApi(image + "/manifests/" + tag, {
         method: "HEAD",
         headers: {
