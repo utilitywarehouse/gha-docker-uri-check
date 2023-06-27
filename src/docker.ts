@@ -31,23 +31,23 @@ export function dockerRegistryChecker(registries: DockerRegistry[]) {
 }
 
 function createDockerClient(registry: DockerRegistry) {
-  let token = "none";
+  let token;
 
   async function fetchApi(path, config) {
     function apiFetch() {
+      const headers = {
+        ...config.headers,
+      };
+      if (token) {
+        headers["Authorization"] = "Bearer " + token;
+      }
       return fetch(`https://${registry.endpoint}/v2/` + path, {
-        headers: {
-          ...config.headers,
-          Authorization: "Bearer " + token,
-        },
+        ...config,
+        headers,
       });
     }
 
-    async function fetchToken(
-      realm: string,
-      service: string,
-      scope: string
-    ): Promise<string> {
+    async function fetchToken(realm: string, service: string, scope: string) {
       const result = await fetch(
         realm +
           `?service=${encodeURIComponent(service)}&scope=${encodeURIComponent(
