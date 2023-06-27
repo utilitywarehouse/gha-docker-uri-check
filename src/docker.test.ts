@@ -14,6 +14,13 @@ test("docker registry checker", async (t) => {
     t.equal(status, "ok");
   });
 
+  t.test("valid tag on OCI image", async (t) => {
+    const status = await check(
+      "registry.uw.systems/data-platform/di-bigquery-connector:e3acca03cf16920eaca0828a93e6400aee98835a"
+    );
+    t.equal(status, "ok");
+  });
+
   t.test("non-existent tag", async (t) => {
     const status = await check(
       "registry.uw.systems/partner-planner/analytics-api-api:iDontExist"
