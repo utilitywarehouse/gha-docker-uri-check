@@ -89,8 +89,17 @@ function createDockerClient(registry: DockerRegistry): DockerClient {
     if (wwwAuthenticate) {
       // Not super robust, but good enough.
       const realm = wwwAuthenticate.match(/realm="(.+?)"/)[1];
+      if (!realm) {
+        throw Error("Couldn't find realm in www-authenticate header");
+      }
       const service = wwwAuthenticate.match(/service="(.+?)"/)[1];
+      if (!service) {
+        throw Error("Couldn't find service in www-authenticate header");
+      }
       const scope = wwwAuthenticate.match(/scope="(.+?)"/)[1];
+      if (!scope) {
+        throw Error("Couldn't find scope in www-authenticate header");
+      }
 
       // Repeat the original request with the new token.
       token = await fetchToken(realm, service, scope);
