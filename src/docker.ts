@@ -9,6 +9,8 @@ export interface DockerRegistry {
 export type Status = "ok" | "not_found";
 
 export function dockerRegistryChecker(registries: DockerRegistry[]) {
+  const clients = new Map<string, DockerClient>();
+
   return async function check(uri: string): Promise<Status> {
     const registry = registries.find((registry) =>
       uri.startsWith(registry.endpoint)
@@ -18,7 +20,13 @@ export function dockerRegistryChecker(registries: DockerRegistry[]) {
       throw Error("Couldn't find a registry for Docker URI");
     }
 
-    const client = createDockerClient(registry);
+    // Cache a client per registry endpoint to avoid re-authenticating every time.
+    let client = clients.get(registry.endpoint);
+    if (!client) {
+      client = createDockerClient(registry);
+      clients.set(registry.endpoint, client);
+    }
+
     const [image, tag] = uri.replace(registry.endpoint + "/", "").split(":");
 
     const exists = await client.tagExists(image, tag);
@@ -30,7 +38,11 @@ export function dockerRegistryChecker(registries: DockerRegistry[]) {
   };
 }
 
-function createDockerClient(registry: DockerRegistry) {
+interface DockerClient {
+  tagExists(image: string, tag: string): Promise<boolean>;
+}
+
+function createDockerClient(registry: DockerRegistry): DockerClient {
   let token;
 
   async function fetchApi(path, config) {
