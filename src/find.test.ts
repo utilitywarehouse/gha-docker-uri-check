@@ -35,7 +35,7 @@ const tests: Test[] = [
     file: "test-fixtures/special-characters.diff",
     expected: [
       {
-        uri: "registry.uw.systems/partner-planner/backend:foo-bar_har",
+        uri: "registry.uw.systems/partner-planner/backend:foo-bar_har.baz",
         file: "prod-aws/partner-planner/backend.yaml",
         line: 58,
       },

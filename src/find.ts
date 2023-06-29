@@ -35,7 +35,7 @@ export function dockerImageURIFinder(registries: DockerRegistry[]) {
       new RegExp(
         "\\b" +
           escapeRegExp(registry.endpoint) +
-          "/[\\w_-]+/[\\w_-]+:([\\w_-]+)\\b",
+          "/[\\w_-]+/[\\w_-]+:([\\w\\._-]+)\\b",
         "gi"
       )
   );
