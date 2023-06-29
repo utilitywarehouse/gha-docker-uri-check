@@ -7,7 +7,7 @@ index 372f9fa0ca..32465c5968 100644
        containers:
          - name: backend
 -          image: registry.uw.systems/partner-planner/backend:fa86028129e0a3c4dc29f0863eb002e9b9391762
-+          image: registry.uw.systems/partner-planner/backend:foo-bar_har
++          image: registry.uw.systems/partner-planner/backend:foo-bar_har.baz
            imagePullPolicy: Always
            env:
              - name: CA_AUTH_KEY
