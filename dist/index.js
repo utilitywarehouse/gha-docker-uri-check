@@ -91452,7 +91452,7 @@ function dockerImageURIFinder(registries) {
     // A greedy regex to match Docker URIs such as: registry.uw.systems/partner-planner/analytics-api:c95a126b5dfbce50483aa52dc0a49ff968b8c15e
     new RegExp("\\b" +
         escapeRegExp(registry.endpoint) +
-        "/[\\w_-]+/[\\w_-]+:([\\w\\._-]+)\\b", "gi"));
+        "/[\\w_-]+/[\\w\\._-]+:([\\w\\._-]+)\\b", "gi"));
     // A cache of parsed YAML files to avoid parsing the same file on every change!
     const yamlFiles = new Map();
     function parseYamlFile(path) {
