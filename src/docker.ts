@@ -115,7 +115,10 @@ function createDockerClient(registry: DockerRegistry): DockerClient {
         method: "HEAD",
         headers: {
           // Required for OCI images, which some namespaces use.
-          Accept: "application/vnd.oci.image.index.v1+json",
+          Accept: [
+            "application/vnd.oci.image.index.v1+json",
+            "application/vnd.oci.image.manifest.v1+json"
+          ].join(",")
         },
       });
       return result.ok;
